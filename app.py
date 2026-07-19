@@ -1,101 +1,59 @@
-# Import Streamlit for web app
 import streamlit as st
-
-# Import pandas for DataFrame
 import pandas as pd
-
-# Import joblib to load saved model
 import joblib
 
-# Load trained model
-model = joblib.load("LR_model.pkl")
+# Load model
+model = joblib.load("Ford_Model.pkl")
+scaler = joblib.load("Scaler.pkl")
+columns = joblib.load("Columns.pkl")
 
-# Load scaler
-scaler = joblib.load("scaler.pkl")
+st.title("Ford Car Price Prediction")
 
-# Load encoded columns
-encoded_columns = joblib.load("columns.pkl")
-
-# Configure Streamlit page
-st.set_page_config(
-    page_title="Ford Car Price Predictor",
-    layout="centered"
-)
-
-st.title("Ford Car Price Predictor")
-
-st.write("Enter the car details below to predict its selling price.")
-
-year = st.number_input(
-    "Manufacturing Year",
-    min_value=1990,
-    max_value=2025,
-    value=2020
-)
-
-mileage = st.number_input(
-    "Mileage",
-    min_value=0,
-    value=10000
-)
-
-tax = st.number_input(
-    "Road Tax",
-    min_value=0,
-    value=150
-)
-
-mpg = st.number_input(
-    "MPG",
-    min_value=0.0,
-    value=55.0
-)
-
-engineSize = st.number_input(
-    "Engine Size",
-    min_value=0.5,
-    value=1.5
-)
+model_name = st.selectbox("Model",
+                          ["Fiesta","Focus","Kuga","EcoSport","Mondeo"])
 
 transmission = st.selectbox(
     "Transmission",
-    ["Automatic","Manual","Semi-Auto"]
+    ["Manual","Automatic","Semi-Auto"]
 )
 
 fuelType = st.selectbox(
     "Fuel Type",
-    ["Petrol", "Diesel", "Hybrid", "Electric", "Other"]
+    ["Petrol","Diesel","Hybrid"]
 )
 
-# Take car model name from user
-model_name = st.text_input("Car Model")
+year = st.number_input("Year", 2000, 2025, 2018)
+mileage = st.number_input("Mileage", 0, 300000, 20000)
+tax = st.number_input("Tax", 0, 500, 150)
+mpg = st.number_input("MPG", 0.0, 100.0, 50.0)
+engineSize = st.number_input("Engine Size", 0.0, 5.0, 1.5)
 
-# Create Predict Price button
-predict = st.button("Predict Price")
+if st.button("Predict Price"):
 
-if predict:
-
-    input_data = pd.DataFrame({
-        "model": [model_name],
+    data = {
         "year": [year],
-        "transmission": [transmission],
         "mileage": [mileage],
-        "fuelType": [fuelType],
         "tax": [tax],
         "mpg": [mpg],
-        "engineSize": [engineSize]
-    })
+        "engineSize": [engineSize],
+        "model": [model_name],
+        "transmission": [transmission],
+        "fuelType": [fuelType]
+    }
 
-    # One-Hot Encoding
-    input_data = pd.get_dummies(input_data)
+    # Create DataFrame first
+    input_df = pd.DataFrame(data)
 
-    # Match training columns
-    input_data = input_data.reindex(columns=encoded_columns, fill_value=0)
+    # Then perform encoding
+    input_df = pd.get_dummies(input_df)
 
-    # Scale all features
-    input_scaled = scaler.transform(input_data)
+    input_df = input_df.reindex(columns=columns, fill_value=0)
 
-    # Predict
-    prediction = model.predict(input_scaled)
+    input_df = pd.DataFrame(
+        scaler.transform(input_df),
+        columns=columns
+    )
+
+    prediction = model.predict(input_df)
 
     st.success(f"Predicted Price: £{prediction[0]:,.2f}")
