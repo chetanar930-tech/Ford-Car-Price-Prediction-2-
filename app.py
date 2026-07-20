@@ -3,10 +3,9 @@ import pandas as pd
 import joblib
 
 # Load model
-model = joblib.load("Ford_Model.pkl")
-scaler = joblib.load("Scaler.pkl")
-columns = joblib.load("Columns.pkl")
-
+model = joblib.load("LR_model.pkl")
+scaler = joblib.load("scaler.pkl")
+columns = joblib.load("columns.pkl")
 st.title("Ford Car Price Prediction")
 
 model_name = st.selectbox("Model",
